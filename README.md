@@ -3,6 +3,6 @@ Projeto de App de Despensa Digital para a disciplina de Mobile
 -------------------------------------------------------------
 Distribuição das tarefas entre os colaboradores
 
-Laiza: Desenvolvimento da tela de Configurações, incluindo gerenciamento das informações do perfil, alteração de tema claro e escuro,  gerenciamento de dependentes para compartilhamento da despensa, além das funcionalidades de sair da conta e excluir conta.
+Laiza: Desenvolvimento da tela de Configurações, incluindo gerenciamento das informações do perfil, gerenciamento de dependentes para compartilhamento da despensa, além das funcionalidades de sair da conta e excluir conta.
 
-Anne:Desenvolvimento da funcionalidade de Adicionar Item por Código de Barras, incluindo leitura do código, cadastro automático de produtos e integração da funcionalidade às demais telas. 
+Anne: Desenvolvimento da funcionalidade de Adicionar Item por Código de Barras, incluindo leitura do código, cadastro automático de produtos e integração da funcionalidade às demais telas. 
