@@ -10,3 +10,6 @@ Anne: Desenvolvimento da funcionalidade de Adicionar Item por Código de Barras,
  Pedro: Desenvolvimento das telas de Despensa e Lista de Compras, incluindo cadastro, remoção, edição e organização de itens armazenados e produtos para compra
 
 Pedro Porto: Desenvolvimento da tela Home e Perfil de Consumo, incluindo exibição de informações principais do usuário, gráficos de consumo, análise de hábitos e navegação principal do sistema. 
+
+Diogo Bastos: Desenvolvimento das telas de Login, Cadastro e Recuperação de Senha, incluindo autenticação de usuários, validação de formulários, integração com Firebase e controle de acesso ao aplicativo. 
+
