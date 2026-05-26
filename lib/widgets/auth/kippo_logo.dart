@@ -10,7 +10,7 @@ class KippoLogo extends StatelessWidget {
   final double width;
   final double height;
 
-  static const String assetPath = 'lib/assets/images/kippo.jpeg';
+  static const String assetPath = 'assets/images/kipo.png';
 
   @override
   Widget build(BuildContext context) {
