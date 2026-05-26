@@ -14,9 +14,7 @@ class BottomNavBar extends StatelessWidget {
         color: AppColors.cardGray,
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
-        padding: EdgeInsets.zero,
         height: 70,
-        child: const SizedBox.shrink(),
       ),
     );
   }
