@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../widgets/auth_gradient_scaffold.dart';
-import '../widgets/auth_primary_button.dart';
-import '../widgets/auth_text_field.dart';
-import '../widgets/kippo_logo.dart';
+import '../../widgets/auth/auth_gradient_scaffold.dart';
+import '../../widgets/auth/auth_primary_button.dart';
+import '../../widgets/auth/auth_text_field.dart';
+import '../../widgets/auth/kippo_logo.dart';
 
 class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});

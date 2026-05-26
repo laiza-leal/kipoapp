@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Plataformas não usadas (projeto é só iOS) — arquivos gerados não devem ser versionados
+/macos/
+/android/
+/web/
+/windows/
+/linux/
