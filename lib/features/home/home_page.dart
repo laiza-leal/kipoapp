@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/home/home_stat_card.dart';
+import '../profile/consumption_profile_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -140,7 +141,12 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 13),
-              Container(
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  ConsumptionProfilePage.routeName,
+                ),
+                child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: AppColors.cardGray,
@@ -207,6 +213,7 @@ class HomePage extends StatelessWidget {
                       ],
                     ),
                   ],
+                ),
                 ),
               ),
               const SizedBox(height: 16),
