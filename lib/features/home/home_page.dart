@@ -5,6 +5,7 @@ import '../../core/theme.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/home/home_stat_card.dart';
 import '../profile/consumption_profile_page.dart';
+import '../settings/settings_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -74,10 +75,16 @@ class HomePage extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(
-                    Icons.settings_outlined,
-                    color: AppColors.textPrimary,
-                    size: 22,
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => Navigator.of(context).pushNamed(
+                      SettingsPage.routeName,
+                    ),
+                    child: const Icon(
+                      Icons.settings_outlined,
+                      color: AppColors.textPrimary,
+                      size: 22,
+                    ),
                   ),
                 ],
               ),
