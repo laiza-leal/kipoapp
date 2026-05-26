@@ -91,7 +91,9 @@ class LoginPage extends StatelessWidget {
                   height: h(49),
                   borderRadius: w(9),
                   fontSize: w(17),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.of(context).pushReplacementNamed('/');
+                  },
                 ),
               ),
 
