@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"ios":{"default":{"projectId":"kipo-app","appId":"1:323897800608:ios:4bde728bc9eb550be296c5","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"kipo-app","configurations":{"ios":"1:323897800608:ios:4bde728bc9eb550be296c5"}}}}}}
