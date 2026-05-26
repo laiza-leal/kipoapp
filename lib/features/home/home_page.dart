@@ -85,6 +85,7 @@ class HomePage extends StatelessWidget {
                       ),
                       Container(
                         decoration: BoxDecoration(border: debugBorder),
+                        onTap: () => _openSettings(context),
                         child: const Icon(
                           Icons.settings_outlined,
                           color: AppColors.textPrimary,
