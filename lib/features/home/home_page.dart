@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/home/home_stat_card.dart';
+import '../pantry/pantry_page.dart';
 import '../profile/consumption_profile_page.dart';
 import '../settings/settings_page.dart';
 
@@ -224,7 +225,13 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              Container(
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  PantryPage.routeName,
+                ),
+                child: Container(
                 height: 76,
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 decoration: BoxDecoration(
@@ -258,6 +265,7 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
                 ),
               ),
               const SizedBox(height: 16),
