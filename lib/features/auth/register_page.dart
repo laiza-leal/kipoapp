@@ -1,17 +1,69 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import '../../core/auth_domain.dart';
 import '../../widgets/auth/auth_gradient_scaffold.dart';
 import '../../widgets/auth/auth_primary_button.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/auth/kippo_logo.dart';
 
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
   static const String routeName = '/register';
 
+  @override
+  State<RegisterPage> createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
   static const double _designWidth = 393;
   static const double _designHeight = 852;
+
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _repeatPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _repeatPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (_passwordController.text != _repeatPasswordController.text) {
+      _showMessage('As senhas não são iguais.');
+      return;
+    }
+
+    try {
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+      await credential.user?.updateDisplayName(_nameController.text.trim());
+      if (!await isAllowedDomainOrSignOut()) {
+        if (!mounted) return;
+        _showMessage(domainErrorMessage);
+        return;
+      }
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/');
+    } on FirebaseAuthException catch (e) {
+      _showMessage(e.message ?? 'Não foi possível criar a conta.');
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,13 +114,15 @@ class RegisterPage extends StatelessWidget {
                 top: h(184),
                 left: 0,
                 right: 0,
-                child: Text(
-                  'Cadastro',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: const Color(0xFF020923),
-                    fontSize: w(24),
-                    fontWeight: FontWeight.w700,
+                child: IgnorePointer(
+                  child: Text(
+                    'Cadastro',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: const Color(0xFF020923),
+                      fontSize: w(24),
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -79,6 +133,7 @@ class RegisterPage extends StatelessWidget {
                 right: w(28),
                 child: AuthTextField(
                   hintText: 'Nome',
+                  controller: _nameController,
                   height: h(49),
                   borderRadius: w(10),
                   fontSize: w(15.5),
@@ -92,6 +147,7 @@ class RegisterPage extends StatelessWidget {
                 right: w(28),
                 child: AuthTextField(
                   hintText: 'Email',
+                  controller: _emailController,
                   height: h(49),
                   borderRadius: w(10),
                   fontSize: w(15.5),
@@ -106,6 +162,7 @@ class RegisterPage extends StatelessWidget {
                 right: w(28),
                 child: AuthTextField(
                   hintText: 'Senha',
+                  controller: _passwordController,
                   height: h(49),
                   borderRadius: w(10),
                   fontSize: w(15.5),
@@ -120,6 +177,7 @@ class RegisterPage extends StatelessWidget {
                 right: w(28),
                 child: AuthTextField(
                   hintText: 'Repetir senha',
+                  controller: _repeatPasswordController,
                   height: h(49),
                   borderRadius: w(10),
                   fontSize: w(15.5),
@@ -137,7 +195,7 @@ class RegisterPage extends StatelessWidget {
                   height: h(49),
                   borderRadius: w(9),
                   fontSize: w(16.5),
-                  onPressed: () {},
+                  onPressed: _register,
                 ),
               ),
             ],
