@@ -7,6 +7,7 @@ import '../../widgets/pantry/pantry_action_button.dart';
 import '../../widgets/pantry/pantry_item_row.dart';
 import '../../widgets/pantry/pantry_list_card.dart';
 import '../../widgets/pantry/recipe_card.dart';
+import '../categories/categories_page.dart';
 
 class PantryPage extends StatelessWidget {
   const PantryPage({super.key});
@@ -47,7 +48,8 @@ class PantryPage extends StatelessWidget {
                 label: 'Adicionar item por categoria',
                 backgroundColor: AppColors.cardGray,
                 foregroundColor: AppColors.textPrimary,
-                onTap: () {},
+                onTap: () =>
+                    Navigator.pushNamed(context, CategoriesPage.routeName),
               ),
               const SizedBox(height: 16),
               const PantryListCard(
