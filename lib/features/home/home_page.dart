@@ -6,6 +6,7 @@ import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/home/home_stat_card.dart';
 import '../pantry/pantry_page.dart';
 import '../profile/consumption_profile_page.dart';
+import '../shopping/shopping_list_page.dart';
 import '../settings/settings_page.dart';
 
 class HomePage extends StatelessWidget {
@@ -78,9 +79,8 @@ class HomePage extends StatelessWidget {
                   ),
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.of(context).pushNamed(
-                      SettingsPage.routeName,
-                    ),
+                    onTap: () =>
+                        Navigator.of(context).pushNamed(SettingsPage.routeName),
                     child: const Icon(
                       Icons.settings_outlined,
                       color: AppColors.textPrimary,
@@ -155,117 +155,114 @@ class HomePage extends StatelessWidget {
                   ConsumptionProfilePage.routeName,
                 ),
                 child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppColors.cardGray,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Seu score de Aproveitamento',
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardGray,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Seu score de Aproveitamento',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '12/100',
                             style: GoogleFonts.dmSans(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textPrimary,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '12/100',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.sentiment_dissatisfied,
+                            color: AppColors.danger,
+                            size: 24,
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.sentiment_dissatisfied,
-                          color: AppColors.danger,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 24),
-                        Expanded(
-                          child: Stack(
-                            children: [
-                              Container(
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: AppColors.inactive,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                              FractionallySizedBox(
-                                widthFactor: 12 / 100,
-                                child: Container(
+                          const SizedBox(width: 24),
+                          Expanded(
+                            child: Stack(
+                              children: [
+                                Container(
                                   height: 24,
                                   decoration: BoxDecoration(
-                                    color: AppColors.danger,
+                                    color: AppColors.inactive,
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                 ),
-                              ),
-                            ],
+                                FractionallySizedBox(
+                                  widthFactor: 12 / 100,
+                                  child: Container(
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.danger,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.pushNamed(
-                  context,
-                  PantryPage.routeName,
-                ),
+                onTap: () => Navigator.pushNamed(context, PantryPage.routeName),
                 child: Container(
-                height: 76,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                decoration: BoxDecoration(
-                  color: AppColors.cardBlue,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.shopping_cart_outlined,
-                      color: AppColors.textPrimary,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 24),
-                    Text(
-                      '25',
-                      style: GoogleFonts.inter(
-                        fontSize: 36,
+                  height: 76,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBlue,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.shopping_cart_outlined,
                         color: AppColors.textPrimary,
-                        height: 1.0,
+                        size: 24,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Itens na Despensa',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                        height: 1.0,
+                      const SizedBox(width: 24),
+                      Text(
+                        '25',
+                        style: GoogleFonts.inter(
+                          fontSize: 36,
+                          color: AppColors.textPrimary,
+                          height: 1.0,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Itens na Despensa',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                          height: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -291,40 +288,45 @@ class HomePage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Container(
-                height: 76,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                decoration: BoxDecoration(
-                  color: AppColors.cardGray,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.shopping_cart_outlined,
-                      color: AppColors.textPrimary,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 24),
-                    Text(
-                      '6',
-                      style: GoogleFonts.inter(
-                        fontSize: 36,
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () =>
+                    Navigator.pushNamed(context, ShoppingListPage.routeName),
+                child: Container(
+                  height: 76,
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardGray,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.shopping_cart_outlined,
                         color: AppColors.textPrimary,
-                        height: 1.0,
+                        size: 24,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Itens na Lista de Compras',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                        height: 1.0,
+                      const SizedBox(width: 24),
+                      Text(
+                        '6',
+                        style: GoogleFonts.inter(
+                          fontSize: 36,
+                          color: AppColors.textPrimary,
+                          height: 1.0,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 8),
+                      Text(
+                        'Itens na Lista de Compras',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                          height: 1.0,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

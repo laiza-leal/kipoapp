@@ -6,6 +6,7 @@ class AppColors {
   static const cardBlue = Color(0x808ED6ED);
   static const primary = Color(0xFF9BC044);
   static const primaryDark = Color(0xFF205A24);
+  static const action = Color(0xFF28829F);
   static const danger = Color(0xFFDF5C4B);
   static const inactive = Color(0xFF8FA2A8);
   static const textPrimary = Color(0xFF11162D);

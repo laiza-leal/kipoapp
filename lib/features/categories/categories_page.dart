@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/categories/category_card.dart';
+import '../../widgets/search_box.dart';
 import '../add_item/add_item_page.dart';
 
 class CategoriesPage extends StatelessWidget {
@@ -30,29 +30,7 @@ class CategoriesPage extends StatelessWidget {
                 onBack: () => Navigator.pop(context),
               ),
               const SizedBox(height: 32),
-              Container(
-                width: double.infinity,
-                height: 60,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.cardGray,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.search, size: 24, color: Colors.black),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Buscar',
-                      style: GoogleFonts.dmSans(
-                        fontSize: 16,
-                        color: Colors.black,
-                        height: 1.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const SearchBox(),
               const SizedBox(height: 24),
               Center(
                 child: Wrap(

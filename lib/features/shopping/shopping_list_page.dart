@@ -3,21 +3,26 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme.dart';
 import '../../widgets/action_button.dart';
-import '../../widgets/add_item/select_field.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/bottom_nav_bar.dart';
+import '../../widgets/shopping/shopping_list_item.dart';
+import 'add_shopping_item_page.dart';
 
-class AddItemPage extends StatelessWidget {
-  const AddItemPage({super.key});
+class ShoppingListPage extends StatefulWidget {
+  const ShoppingListPage({super.key});
 
-  static const String routeName = '/add-item';
+  static const String routeName = '/shopping-list';
+
+  @override
+  State<ShoppingListPage> createState() => _ShoppingListPageState();
+}
+
+class _ShoppingListPageState extends State<ShoppingListPage> {
+  // true = marcado. Começa com o primeiro item marcado, como no design.
+  final List<bool> _checked = [true, false, false, false];
 
   @override
   Widget build(BuildContext context) {
-    // Recebe o nome da categoria que foi tocada na tela anterior.
-    final category =
-        ModalRoute.of(context)?.settings.arguments as String? ?? 'Categoria';
-
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -26,12 +31,12 @@ class AddItemPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               AppHeader(
-                title: category,
+                title: 'Lista de Compras',
                 onBack: () => Navigator.pop(context),
               ),
               const SizedBox(height: 32),
               Text(
-                'Selecione:',
+                'Lista de Compras',
                 style: GoogleFonts.inter(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
@@ -40,14 +45,21 @@ class AddItemPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              SelectField(label: 'Tipo', onTap: () {}),
-              const SizedBox(height: 8),
-              SelectField(label: 'Quantidade', onTap: () {}),
-              const SizedBox(height: 8),
-              SelectField(label: 'Data de validade', onTap: () {}),
+              for (var i = 0; i < _checked.length; i++) ...[
+                if (i > 0) const SizedBox(height: 8),
+                ShoppingListItem(
+                  label: 'Item',
+                  checked: _checked[i],
+                  onTap: () {
+                    setState(() {
+                      _checked[i] = !_checked[i];
+                    });
+                  },
+                ),
+              ],
               const SizedBox(height: 16),
               ActionButton(
-                label: 'Adiciona à despensa',
+                label: 'Concluir',
                 onTap: () => Navigator.of(context).pushNamedAndRemoveUntil(
                   '/',
                   (route) => false,
@@ -59,15 +71,16 @@ class AddItemPage extends StatelessWidget {
       ),
       bottomNavigationBar: const BottomNavBar(),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.danger,
+        backgroundColor: AppColors.primary,
         shape: const CircleBorder(),
         elevation: 0,
         highlightElevation: 0,
         hoverElevation: 0,
         focusElevation: 0,
         disabledElevation: 0,
-        onPressed: () => Navigator.pop(context),
-        child: const Icon(Icons.close, color: Colors.white),
+        onPressed: () =>
+            Navigator.pushNamed(context, AddShoppingItemPage.routeName),
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
