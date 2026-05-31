@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../auth/login_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -128,11 +131,12 @@ class SettingsPage extends StatelessWidget {
                       value: 'SI',
                     ),
                     SizedBox(height: dangerTopSpacing),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 21),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 21),
                       child: _DangerAction(
                         icon: Icons.logout,
                         label: 'Sair da conta',
+                        onTap: () => _logout(context),
                       ),
                     ),
                     SizedBox(height: dangerActionSpacing),
@@ -151,6 +155,15 @@ class SettingsPage extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    if (!context.mounted) return;
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      LoginPage.routeName,
+      (route) => false,
     );
   }
 

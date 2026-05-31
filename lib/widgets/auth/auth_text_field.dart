@@ -7,6 +7,7 @@ class AuthTextField extends StatelessWidget {
     required this.height,
     required this.borderRadius,
     required this.fontSize,
+    this.controller,
     this.obscureText = false,
     this.keyboardType,
     this.textInputAction,
@@ -16,6 +17,7 @@ class AuthTextField extends StatelessWidget {
   final double height;
   final double borderRadius;
   final double fontSize;
+  final TextEditingController? controller;
   final bool obscureText;
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
@@ -28,6 +30,7 @@ class AuthTextField extends StatelessWidget {
     return SizedBox(
       height: height,
       child: TextField(
+        controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
         textInputAction: textInputAction,

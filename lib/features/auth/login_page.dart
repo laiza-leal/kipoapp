@@ -1,4 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import '../../core/auth_domain.dart';
 
 import '../../widgets/auth/auth_gradient_scaffold.dart';
 import '../../widgets/auth/auth_primary_button.dart';
@@ -6,13 +10,74 @@ import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/auth/kippo_logo.dart';
 import 'register_page.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   static const String routeName = '/login';
 
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   static const double _designWidth = 393;
   static const double _designHeight = 852;
+
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      if (!await isAllowedDomainOrSignOut()) {
+        if (!mounted) return;
+        _showMessage(domainErrorMessage);
+        return;
+      }
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/');
+    } on FirebaseAuthException catch (e) {
+      _showMessage(e.message ?? 'Não foi possível entrar.');
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    try {
+      final googleUser = await GoogleSignIn().signIn();
+      if (googleUser == null) return; // usuário cancelou
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      if (!await isAllowedDomainOrSignOut()) {
+        if (!mounted) return;
+        _showMessage(domainErrorMessage);
+        return;
+      }
+      if (!mounted) return;
+      Navigator.of(context).pushReplacementNamed('/');
+    } on FirebaseAuthException catch (e) {
+      _showMessage(e.message ?? 'Não foi possível entrar com o Google.');
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +125,7 @@ class LoginPage extends StatelessWidget {
                 right: w(20),
                 child: AuthTextField(
                   hintText: 'Email',
+                  controller: _emailController,
                   height: h(48),
                   borderRadius: w(9),
                   fontSize: w(16),
@@ -74,6 +140,7 @@ class LoginPage extends StatelessWidget {
                 right: w(20),
                 child: AuthTextField(
                   hintText: 'Senha',
+                  controller: _passwordController,
                   height: h(48),
                   borderRadius: w(9),
                   fontSize: w(16),
@@ -91,9 +158,7 @@ class LoginPage extends StatelessWidget {
                   height: h(49),
                   borderRadius: w(9),
                   fontSize: w(17),
-                  onPressed: () {
-                    Navigator.of(context).pushReplacementNamed('/');
-                  },
+                  onPressed: _login,
                 ),
               ),
 
@@ -146,7 +211,7 @@ class LoginPage extends StatelessWidget {
                   height: h(49),
                   borderRadius: w(9),
                   fontSize: w(17),
-                  onPressed: () {},
+                  onPressed: _loginWithGoogle,
                 ),
               ),
             ],
