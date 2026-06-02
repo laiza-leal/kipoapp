@@ -24,6 +24,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>O Kipo precisa acessar a câmera para ler códigos de barras e adicionar produtos à despensa.</string>
 	<!-- Google Sign-In: REVERSED_CLIENT_ID do GoogleService-Info.plist. -->
 	<key>CFBundleURLTypes</key>
 	<array>

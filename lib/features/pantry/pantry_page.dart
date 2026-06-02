@@ -8,11 +8,96 @@ import '../../widgets/pantry/pantry_item_row.dart';
 import '../../widgets/pantry/pantry_list_card.dart';
 import '../../widgets/pantry/recipe_card.dart';
 import '../categories/categories_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../barcode_item/add_item_by_barcode_service.dart';
+import '../barcode_item/barcode_scanner_sheet.dart';
+import '../add_item/add_item_page.dart';
 
 class PantryPage extends StatelessWidget {
   const PantryPage({super.key});
 
   static const String routeName = '/pantry';
+    static final AddItemByBarcodeService _addItemByBarcodeService =
+      AddItemByBarcodeService();
+
+  Future<void> _handleAddByBarcode(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Faça login para adicionar itens à despensa.'),
+        ),
+      );
+      return;
+    }
+
+    final rawBarcode = await showBarcodeScannerSheet(context);
+
+    if (!context.mounted || rawBarcode == null) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Processando produto...'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    final result = await _addItemByBarcodeService.addFromBarcode(
+      rawBarcode: rawBarcode,
+      userId: user.uid,
+      quantity: 1,
+    );
+
+    if (!context.mounted) {
+      return;
+    }
+
+    switch (result.type) {
+      case AddItemByBarcodeResultType.success:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${result.productName ?? 'Item'} adicionado à despensa.',
+            ),
+          ),
+        );
+        break;
+
+      case AddItemByBarcodeResultType.manualRegistrationRequired:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Produto não encontrado. Abrindo cadastro manual.',
+            ),
+          ),
+        );
+
+        Navigator.pushNamed(
+          context,
+          AddItemPage.routeName,
+          arguments: {
+            'barcode': result.barcode,
+            'source': 'barcode',
+          },
+        );
+        break;
+
+      case AddItemByBarcodeResultType.invalidBarcode:
+      case AddItemByBarcodeResultType.networkError:
+      case AddItemByBarcodeResultType.firebaseError:
+      case AddItemByBarcodeResultType.unknownError:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.message),
+          ),
+        );
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +125,7 @@ class PantryPage extends StatelessWidget {
                 label: 'Adicionar item por código de barras',
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                onTap: () {},
+                onTap: () => _handleAddByBarcode(context),
               ),
               const SizedBox(height: 16),
               PantryActionButton(
