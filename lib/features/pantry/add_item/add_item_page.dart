@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme.dart';
-import '../../../widgets/action_button.dart';
+import '../../../widgets/pantry/components/action_button.dart';
 import '../../../widgets/app_header.dart';
 import '../../../widgets/bottom_nav_bar.dart';
 import 'add_item_firestore_service.dart';
@@ -35,6 +35,32 @@ class AddItemPage extends StatelessWidget {
 class _AddItemPageContent extends StatelessWidget {
   const _AddItemPageContent();
 
+  Future<void> _pickExpirationDate(BuildContext context) async {
+    final controller = context.read<AddItemFormController>();
+    final now = DateTime.now();
+
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: controller.selectedExpirationDate ?? now,
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 10),
+    );
+
+    if (selectedDate == null) {
+      return;
+    }
+
+    controller.changeExpirationDate(selectedDate);
+  }
+
+  String _formatDate(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final year = date.year.toString().padLeft(4, '0');
+
+    return '$day/$month/$year';
+  }
+
   Future<void> _handleSave(BuildContext context) async {
     final controller = context.read<AddItemFormController>();
 
@@ -44,9 +70,9 @@ class _AddItemPageContent extends StatelessWidget {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(result.message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(result.message)));
 
     if (result.success) {
       Navigator.pop(context, true);
@@ -110,9 +136,18 @@ class _AddItemPageContent extends StatelessWidget {
               itemLabelBuilder: (value) => value.toString(),
               onChanged: controller.changeQuantity,
             ),
+            const SizedBox(height: 8),
+            _DatePickerInputField(
+              label: controller.selectedExpirationDate == null
+                  ? 'Data de validade'
+                  : _formatDate(controller.selectedExpirationDate!),
+              onTap: () => _pickExpirationDate(context),
+            ),
             const SizedBox(height: 16),
             ActionButton(
-              label: controller.isSaving ? 'Salvando...' : 'Adiciona à despensa',
+              label: controller.isSaving
+                  ? 'Salvando...'
+                  : 'Adiciona à despensa',
               onTap: controller.isSaving ? () {} : () => _handleSave(context),
             ),
           ],
@@ -136,11 +171,7 @@ class _AddItemPageContent extends StatelessWidget {
 }
 
 final class _AddItemPageArguments {
-  const _AddItemPageArguments({
-    this.category,
-    this.barcode,
-    this.source,
-  });
+  const _AddItemPageArguments({this.category, this.barcode, this.source});
 
   final String? category;
   final String? barcode;
@@ -193,8 +224,8 @@ class _TextInputField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 76,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      constraints: const BoxConstraints(minHeight: 76),
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.cardGray,
         borderRadius: BorderRadius.circular(10),
@@ -212,14 +243,8 @@ class _TextInputField extends StatelessWidget {
           labelText: label,
           hintText: hintText,
           border: InputBorder.none,
-          labelStyle: GoogleFonts.inter(
-            fontSize: 16,
-            color: Colors.black54,
-          ),
-          hintStyle: GoogleFonts.inter(
-            fontSize: 16,
-            color: Colors.black38,
-          ),
+          labelStyle: GoogleFonts.inter(fontSize: 16, color: Colors.black54),
+          hintStyle: GoogleFonts.inter(fontSize: 16, color: Colors.black38),
         ),
       ),
     );
@@ -245,7 +270,7 @@ class _DropdownInputField<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 76,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 28),
       decoration: BoxDecoration(
         color: AppColors.cardGray,
         borderRadius: BorderRadius.circular(10),
@@ -281,6 +306,48 @@ class _DropdownInputField<T> extends StatelessWidget {
             );
           }).toList(),
           onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+class _DatePickerInputField extends StatelessWidget {
+  const _DatePickerInputField({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        height: 76,
+        padding: const EdgeInsets.symmetric(horizontal: 28),
+        decoration: BoxDecoration(
+          color: AppColors.cardGray,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  color: Colors.black,
+                  height: 1.0,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.calendar_today_outlined,
+              color: Colors.black,
+              size: 24,
+            ),
+          ],
         ),
       ),
     );

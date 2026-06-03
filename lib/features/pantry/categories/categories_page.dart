@@ -4,7 +4,7 @@ import '../../../core/theme.dart';
 import '../../../widgets/app_header.dart';
 import '../../../widgets/bottom_nav_bar.dart';
 import '../../../widgets/categories/category_card.dart';
-import '../../../widgets/search_box.dart';
+import '../../../widgets/pantry/components/search_box.dart';
 import '../add_item/add_item_page.dart';
 
 class CategoriesPage extends StatelessWidget {

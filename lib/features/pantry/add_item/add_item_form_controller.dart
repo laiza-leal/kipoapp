@@ -20,12 +20,12 @@ final class AddItemFormController extends ChangeNotifier {
   final TextEditingController nameController = TextEditingController();
 
   final String? barcode;
-
   final List<String> categoryOptions;
 
   String? selectedCategory;
   String selectedType = 'Unidade';
   int selectedQuantity = 1;
+  DateTime? selectedExpirationDate;
   bool isSaving = false;
 
   static const List<String> _defaultCategoryOptions = [
@@ -80,6 +80,12 @@ final class AddItemFormController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void changeExpirationDate(DateTime value) {
+    selectedExpirationDate = DateTime(value.year, value.month, value.day);
+
+    notifyListeners();
+  }
+
   Future<AddManualItemResult> save() async {
     if (isSaving) {
       return const AddManualItemResult.failure(
@@ -101,6 +107,14 @@ final class AddItemFormController extends ChangeNotifier {
       return const AddManualItemResult.failure('Informe o nome do item.');
     }
 
+    final expiresAt = selectedExpirationDate;
+
+    if (expiresAt == null) {
+      return const AddManualItemResult.failure(
+        'Informe a data de validade do item.',
+      );
+    }
+
     isSaving = true;
     notifyListeners();
 
@@ -109,6 +123,7 @@ final class AddItemFormController extends ChangeNotifier {
         userId: user.uid,
         name: name,
         quantity: selectedQuantity,
+        expiresAt: expiresAt,
         category: selectedCategory,
         type: selectedType,
         barcode: barcode,

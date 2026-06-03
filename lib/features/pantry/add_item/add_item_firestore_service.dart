@@ -33,12 +33,15 @@ final class AddItemFirestoreService {
     required String userId,
     required String name,
     required int quantity,
+    required DateTime expiresAt,
     String? category,
     String? type,
     String? barcode,
   }) async {
     final normalizedName = name.trim();
     final normalizedBarcode = barcode?.trim();
+    final normalizedExpirationDate = _normalizeDateOnly(expiresAt);
+    final expirationDateKey = _buildDateKey(normalizedExpirationDate);
 
     if (normalizedName.isEmpty) {
       return const AddManualItemResult.failure(
@@ -64,11 +67,13 @@ final class AddItemFirestoreService {
 
       final productId = productRef.id;
 
+      final itemId = '${productId}_$expirationDateKey';
+
       final itemRef = _firestore
           .collection('users')
           .doc(userId)
           .collection('items')
-          .doc(productId);
+          .doc(itemId);
 
       await _firestore.runTransaction((transaction) async {
         final productSnapshot = await transaction.get(productRef);
@@ -83,7 +88,7 @@ final class AddItemFirestoreService {
             'description': type,
             'imageUrl': null,
             'category': category,
-            'source': 'manual',
+            'source': hasBarcode ? 'barcode' : 'manual',
             'createdAt': now,
             'updatedAt': now,
           });
@@ -106,7 +111,7 @@ final class AddItemFirestoreService {
         }
 
         transaction.set(itemRef, {
-          'id': productId,
+          'id': itemId,
           'userId': userId,
           'productId': productId,
           'barcode': hasBarcode ? normalizedBarcode : null,
@@ -114,6 +119,8 @@ final class AddItemFirestoreService {
           'quantity': quantity,
           'category': category,
           'type': type,
+          'expiresAt': Timestamp.fromDate(normalizedExpirationDate),
+          'expirationDateKey': expirationDateKey,
           'status': 'active',
           'notes': null,
           'createdAt': now,
@@ -131,5 +138,17 @@ final class AddItemFirestoreService {
         'Erro inesperado ao adicionar item.',
       );
     }
+  }
+
+  DateTime _normalizeDateOnly(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
+  }
+
+  String _buildDateKey(DateTime date) {
+    final year = date.year.toString().padLeft(4, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+
+    return '$year$month$day';
   }
 }

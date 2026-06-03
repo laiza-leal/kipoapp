@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme.dart';
-import '../../widgets/action_button.dart';
+import '../../widgets/pantry/components/action_button.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/shopping/shopping_list_item.dart';
