@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../core/theme.dart';
+import '../../../core/theme.dart';
 
 /// Botão azul de largura cheia (ex: "Adiciona à lista", "Concluir").
 class ActionButton extends StatelessWidget {

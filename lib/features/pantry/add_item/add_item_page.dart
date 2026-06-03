@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme.dart';
-import '../../../widgets/action_button.dart';
+import '../../../widgets/pantry/components/action_button.dart';
 import '../../../widgets/app_header.dart';
 import '../../../widgets/bottom_nav_bar.dart';
 import 'add_item_firestore_service.dart';

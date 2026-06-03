@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme.dart';
-import '../../widgets/action_button.dart';
+import '../../widgets/pantry/components/action_button.dart';
 import '../../widgets/pantry/add_item/select_field.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/bottom_nav_bar.dart';
-import '../../widgets/search_box.dart';
+import '../../widgets/pantry/components/search_box.dart';
 
 class AddShoppingItemPage extends StatelessWidget {
   const AddShoppingItemPage({super.key});
