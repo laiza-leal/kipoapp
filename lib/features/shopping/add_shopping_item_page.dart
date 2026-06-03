@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme.dart';
 import '../../widgets/action_button.dart';
-import '../../widgets/add_item/select_field.dart';
+import '../../widgets/pantry/add_item/select_field.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/search_box.dart';
