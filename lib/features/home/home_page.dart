@@ -12,7 +12,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../pantry/pantry_firestore_service.dart';
 
-
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
@@ -347,7 +346,7 @@ class _HomePantrySummaryCard extends StatelessWidget {
             ),
             const SizedBox(width: 24),
             if (user == null)
-              _HomePantryCountContent(count: 0)
+              const _HomePantryCountContent(count: 0)
             else
               StreamBuilder<List<PantryFirestoreItem>>(
                 stream: pantryFirestoreService.watchUserItems(userId: user.uid),
@@ -357,7 +356,11 @@ class _HomePantrySummaryCard extends StatelessWidget {
                   }
 
                   final items = snapshot.data ?? const <PantryFirestoreItem>[];
-                  final count = items.length;
+
+                  final count = items.fold<int>(
+                    0,
+                    (total, item) => total + item.quantity,
+                  );
 
                   return _HomePantryCountContent(count: count);
                 },
