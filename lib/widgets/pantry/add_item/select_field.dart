@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../core/theme.dart';
+import '../../../core/theme.dart';
 
 /// Campo de seleção: um texto à esquerda e uma seta para baixo à direita.
 class SelectField extends StatelessWidget {

@@ -11,7 +11,7 @@ import '../settings/settings_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../pantry/pantry_firestore_service.dart';
-import '../pantry/pantry_page.dart';
+
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

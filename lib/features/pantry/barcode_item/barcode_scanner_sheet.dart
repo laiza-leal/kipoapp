@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import '../../core/theme.dart';
+import '../../../core/theme.dart';
 
 Future<String?> showBarcodeScannerSheet(BuildContext context) {
   final scannerController = MobileScannerController(

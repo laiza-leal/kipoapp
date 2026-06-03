@@ -3,8 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme.dart';
 
-/// Linha da lista de compras com uma caixinha de marcar.
-/// Quando marcado, o fundo fica verde.
 class ShoppingListItem extends StatelessWidget {
   const ShoppingListItem({
     super.key,

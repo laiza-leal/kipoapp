@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'core/theme.dart';
 import 'features/auth/login_page.dart';
 import 'features/auth/register_page.dart';
-import 'features/categories/categories_page.dart';
+import 'features/pantry/categories/categories_page.dart';
 import 'features/detail/detail_page.dart';
 import 'features/home/home_page.dart';
 import 'features/pantry/pantry_page.dart';
@@ -11,7 +11,7 @@ import 'features/shopping/add_shopping_item_page.dart';
 import 'features/shopping/shopping_list_page.dart';
 import 'features/profile/consumption_profile_page.dart';
 import 'features/settings/settings_page.dart';
-import 'features/add_item/add_item_page.dart';
+import 'features/pantry/add_item/add_item_page.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
