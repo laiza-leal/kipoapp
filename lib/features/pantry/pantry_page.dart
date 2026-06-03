@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../add_item/add_item_page.dart';
 
 import '../../core/theme.dart';
 import '../../widgets/bottom_nav_bar.dart';
@@ -8,11 +9,11 @@ import '../../widgets/pantry/pantry_action_button.dart';
 import '../../widgets/pantry/pantry_item_row.dart';
 import '../../widgets/pantry/pantry_list_card.dart';
 import '../../widgets/pantry/recipe_card.dart';
-import '../add_item/add_item_page.dart';
 import '../barcode_item/add_item_by_barcode_service.dart';
 import '../barcode_item/barcode_scanner_sheet.dart';
 import '../categories/categories_page.dart';
 import 'pantry_firestore_service.dart';
+
 
 class PantryPage extends StatelessWidget {
   const PantryPage({super.key});

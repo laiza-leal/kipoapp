@@ -6,75 +6,51 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../core/theme.dart';
 
 Future<String?> showBarcodeScannerSheet(BuildContext context) {
+  final scannerController = MobileScannerController(
+    detectionSpeed: DetectionSpeed.noDuplicates,
+    formats: const [
+      BarcodeFormat.ean8,
+      BarcodeFormat.ean13,
+      BarcodeFormat.upcA,
+      BarcodeFormat.upcE,
+      BarcodeFormat.itf14,
+    ],
+  );
+
+  final barcodeAlreadyReturned = ValueNotifier<bool>(false);
+
   return showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.black,
-    builder: (_) => const BarcodeScannerSheet(),
-  );
+    builder: (_) {
+      return BarcodeScannerSheet(
+        scannerController: scannerController,
+        barcodeAlreadyReturned: barcodeAlreadyReturned,
+      );
+    },
+  ).whenComplete(() async {
+    await scannerController.dispose();
+    barcodeAlreadyReturned.dispose();
+  });
 }
 
-class BarcodeScannerSheet extends StatefulWidget {
-  const BarcodeScannerSheet({super.key});
+class BarcodeScannerSheet extends StatelessWidget {
+  const BarcodeScannerSheet({
+    super.key,
+    required this.scannerController,
+    required this.barcodeAlreadyReturned,
+  });
 
-  @override
-  State<BarcodeScannerSheet> createState() => _BarcodeScannerSheetState();
-}
+  final MobileScannerController scannerController;
+  final ValueNotifier<bool> barcodeAlreadyReturned;
 
-class _BarcodeScannerSheetState extends State<BarcodeScannerSheet>
-    with WidgetsBindingObserver {
-  late final MobileScannerController _scannerController;
-
-  bool _barcodeAlreadyReturned = false;
-
-  @override
-  void initState() {
-    super.initState();
-
-    WidgetsBinding.instance.addObserver(this);
-
-    _scannerController = MobileScannerController(
-      detectionSpeed: DetectionSpeed.noDuplicates,
-      formats: const [
-        BarcodeFormat.ean8,
-        BarcodeFormat.ean13,
-        BarcodeFormat.upcA,
-        BarcodeFormat.upcE,
-        BarcodeFormat.itf14,
-      ],
-    );
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (!_scannerController.value.hasCameraPermission) {
-      return;
-    }
-
-    switch (state) {
-      case AppLifecycleState.resumed:
-        unawaited(_scannerController.start());
-        break;
-
-      case AppLifecycleState.inactive:
-      case AppLifecycleState.hidden:
-      case AppLifecycleState.paused:
-      case AppLifecycleState.detached:
-        unawaited(_scannerController.stop());
-        break;
-    }
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    unawaited(_scannerController.dispose());
-    super.dispose();
-  }
-
-  void _handleDetect(BarcodeCapture capture) {
-    if (_barcodeAlreadyReturned) {
+  void _handleDetect(
+    BuildContext context,
+    BarcodeCapture capture,
+  ) {
+    if (barcodeAlreadyReturned.value) {
       return;
     }
 
@@ -85,10 +61,10 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet>
         continue;
       }
 
-      _barcodeAlreadyReturned = true;
-      unawaited(_scannerController.stop());
+      barcodeAlreadyReturned.value = true;
+      unawaited(scannerController.stop());
 
-      if (!mounted) {
+      if (!context.mounted) {
         return;
       }
 
@@ -106,8 +82,8 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet>
       child: Stack(
         children: [
           MobileScanner(
-            controller: _scannerController,
-            onDetect: _handleDetect,
+            controller: scannerController,
+            onDetect: (capture) => _handleDetect(context, capture),
             errorBuilder: (context, error) {
               return _ScannerErrorView(
                 message: 'Não foi possível iniciar a câmera.',
@@ -166,7 +142,10 @@ class _ScannerFrameOverlay extends StatelessWidget {
         width: MediaQuery.sizeOf(context).width * 0.82,
         height: 180,
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.primary, width: 3),
+          border: Border.all(
+            color: AppColors.primary,
+            width: 3,
+          ),
           borderRadius: BorderRadius.circular(20),
         ),
       ),
@@ -212,7 +191,10 @@ class _ScannerErrorView extends StatelessWidget {
               Text(
                 technicalMessage,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),

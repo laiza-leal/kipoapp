@@ -8,18 +8,17 @@ import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/shopping/shopping_list_item.dart';
 import 'add_shopping_item_page.dart';
 
-class ShoppingListPage extends StatefulWidget {
+class ShoppingListPage extends StatelessWidget {
   const ShoppingListPage({super.key});
 
   static const String routeName = '/shopping-list';
 
-  @override
-  State<ShoppingListPage> createState() => _ShoppingListPageState();
-}
-
-class _ShoppingListPageState extends State<ShoppingListPage> {
-  // true = marcado. Começa com o primeiro item marcado, como no design.
-  final List<bool> _checked = [true, false, false, false];
+  static const List<bool> _checkedItems = [
+    true,
+    false,
+    false,
+    false,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -45,16 +44,12 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              for (var i = 0; i < _checked.length; i++) ...[
-                if (i > 0) const SizedBox(height: 8),
+              for (var index = 0; index < _checkedItems.length; index++) ...[
+                if (index > 0) const SizedBox(height: 8),
                 ShoppingListItem(
                   label: 'Item',
-                  checked: _checked[i],
-                  onTap: () {
-                    setState(() {
-                      _checked[i] = !_checked[i];
-                    });
-                  },
+                  checked: _checkedItems[index],
+                  onTap: () {},
                 ),
               ],
               const SizedBox(height: 16),
@@ -78,9 +73,16 @@ class _ShoppingListPageState extends State<ShoppingListPage> {
         hoverElevation: 0,
         focusElevation: 0,
         disabledElevation: 0,
-        onPressed: () =>
-            Navigator.pushNamed(context, AddShoppingItemPage.routeName),
-        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () {
+          Navigator.pushNamed(
+            context,
+            AddShoppingItemPage.routeName,
+          );
+        },
+        child: const Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );

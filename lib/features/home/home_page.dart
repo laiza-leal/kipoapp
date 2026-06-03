@@ -8,10 +8,16 @@ import '../pantry/pantry_page.dart';
 import '../profile/consumption_profile_page.dart';
 import '../shopping/shopping_list_page.dart';
 import '../settings/settings_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../pantry/pantry_firestore_service.dart';
+import '../pantry/pantry_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
+  static final PantryFirestoreService _pantryFirestoreService =
+      PantryFirestoreService();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -225,45 +231,8 @@ class HomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.pushNamed(context, PantryPage.routeName),
-                child: Container(
-                  height: 76,
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBlue,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.shopping_cart_outlined,
-                        color: AppColors.textPrimary,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 24),
-                      Text(
-                        '25',
-                        style: GoogleFonts.inter(
-                          fontSize: 36,
-                          color: AppColors.textPrimary,
-                          height: 1.0,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Itens na Despensa',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                          height: 1.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              _HomePantrySummaryCard(
+                pantryFirestoreService: _pantryFirestoreService,
               ),
               const SizedBox(height: 16),
               Row(
@@ -346,6 +315,90 @@ class HomePage extends StatelessWidget {
         child: const Icon(Icons.add, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+}
+
+class _HomePantrySummaryCard extends StatelessWidget {
+  const _HomePantrySummaryCard({required this.pantryFirestoreService});
+
+  final PantryFirestoreService pantryFirestoreService;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.pushNamed(context, PantryPage.routeName),
+      child: Container(
+        height: 76,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        decoration: BoxDecoration(
+          color: AppColors.cardBlue,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.shopping_cart_outlined,
+              color: AppColors.textPrimary,
+              size: 24,
+            ),
+            const SizedBox(width: 24),
+            if (user == null)
+              _HomePantryCountContent(count: 0)
+            else
+              StreamBuilder<List<PantryFirestoreItem>>(
+                stream: pantryFirestoreService.watchUserItems(userId: user.uid),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const _HomePantryCountContent(count: 0);
+                  }
+
+                  final items = snapshot.data ?? const <PantryFirestoreItem>[];
+                  final count = items.length;
+
+                  return _HomePantryCountContent(count: count);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomePantryCountContent extends StatelessWidget {
+  const _HomePantryCountContent({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = count == 1 ? 'Item na Despensa' : 'Itens na Despensa';
+
+    return Row(
+      children: [
+        Text(
+          count.toString(),
+          style: GoogleFonts.inter(
+            fontSize: 36,
+            color: AppColors.textPrimary,
+            height: 1.0,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+            height: 1.0,
+          ),
+        ),
+      ],
     );
   }
 }
