@@ -182,4 +182,31 @@ final class PantryFirestoreService {
           return items;
         });
   }
+
+  Future<void> markItemAsUsed({
+    required String userId,
+    required String itemId,
+    DateTime? expiresAt,
+  }) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final usedInTime = expiresAt == null
+        ? true
+        : !DateTime(
+            expiresAt.year,
+            expiresAt.month,
+            expiresAt.day,
+          ).isBefore(today);
+
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('items')
+        .doc(itemId)
+        .update({
+          'status': 'used',
+          'usedInTime': usedInTime,
+          'usedAt': FieldValue.serverTimestamp(),
+        });
+  }
 }

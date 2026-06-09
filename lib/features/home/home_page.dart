@@ -7,6 +7,7 @@ import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/home/home_stat_card.dart';
 import '../pantry/pantry_page.dart';
 import '../profile/consumption_profile_page.dart';
+import '../profile/data/profile_store.dart';
 import '../settings/settings_page.dart';
 import '../shopping/data/shopping_store.dart';
 import '../shopping/shopping_list_page.dart';
@@ -116,67 +117,81 @@ class HomePage extends StatelessWidget {
                   color: AppColors.cardGray,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                child: StreamBuilder(
+                  stream: ProfileStore.watchPantry(),
+                  builder: (context, snapshot) {
+                    final score = snapshot.hasData
+                        ? ProfileStore.score(snapshot.data!.docs)
+                        : 0;
+                    final good = score >= 50;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            'Seu score de Aproveitamento',
-                            style: GoogleFonts.dmSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Seu score de Aproveitamento',
+                                style: GoogleFonts.dmSans(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '12/100',
-                          style: GoogleFonts.dmSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.sentiment_dissatisfied,
-                          color: AppColors.danger,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 24),
-                        Expanded(
-                          child: Stack(
-                            children: [
-                              Container(
-                                height: 24,
-                                decoration: BoxDecoration(
-                                  color: AppColors.inactive,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '$score/100',
+                              style: GoogleFonts.dmSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
                               ),
-                              FractionallySizedBox(
-                                widthFactor: 12 / 100,
-                                child: Container(
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.danger,
-                                    borderRadius: BorderRadius.circular(10),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            Icon(
+                              good
+                                  ? Icons.sentiment_satisfied
+                                  : Icons.sentiment_dissatisfied,
+                              color: good ? AppColors.primary : AppColors.danger,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              child: Stack(
+                                children: [
+                                  Container(
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.inactive,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                   ),
-                                ),
+                                  FractionallySizedBox(
+                                    widthFactor: score / 100,
+                                    child: Container(
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        color: good
+                                            ? AppColors.primary
+                                            : AppColors.danger,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),

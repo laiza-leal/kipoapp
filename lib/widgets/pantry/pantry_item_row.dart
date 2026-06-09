@@ -8,10 +8,12 @@ class PantryItemRow extends StatelessWidget {
     super.key,
     required this.name,
     required this.quantity,
+    this.onMarkUsed,
   });
 
   final String name;
   final String quantity;
+  final VoidCallback? onMarkUsed;
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +46,18 @@ class PantryItemRow extends StatelessWidget {
               height: 1.0,
             ),
           ),
+          if (onMarkUsed != null) ...[
+            const SizedBox(width: 8),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onMarkUsed,
+              child: const Icon(
+                Icons.check_circle_outline,
+                color: AppColors.primary,
+                size: 24,
+              ),
+            ),
+          ],
         ],
       ),
     );

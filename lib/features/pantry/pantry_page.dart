@@ -247,6 +247,18 @@ class _BuildPantryItemsList extends StatelessWidget {
             return PantryItemRow(
               name: item.name,
               quantity: '${item.quantity}un.',
+              onMarkUsed: () async {
+                await pantryFirestoreService.markItemAsUsed(
+                  userId: user.uid,
+                  itemId: item.id,
+                  expiresAt: item.expiresAt,
+                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('"${item.name}" marcado como usado.')),
+                  );
+                }
+              },
             );
           }).toList(),
         );
