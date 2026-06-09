@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../auth/login_page.dart';
+import 'data/settings_store.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -92,10 +93,7 @@ class SettingsPage extends StatelessWidget {
                     ),
                     SizedBox(height: headerToProfileSpacing),
                     const Center(
-                      child: _ProfileSummary(
-                        initial: 'M',
-                        name: 'Marta',
-                      ),
+                      child: _CurrentUserProfileSummary(),
                     ),
                     SizedBox(height: profileToDependentsSpacing),
                     const Text(
@@ -109,26 +107,12 @@ class SettingsPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 13),
-                    const _DependentsSection(),
+                    const _CurrentUserDependentsSection(),
                     SizedBox(height: sectionSpacing),
-                    const _AccountCard(
-                      email: 'marta@kipo.com',
-                      passwordDisplay: '**************',
-                    ),
+                    const _CurrentUserAccountCard(),
                     SizedBox(height: sectionSpacing),
-                    const _PreferenceTile(
-                      title: 'Tema claro',
-                      switchValue: true,
-                    ),
-                    SizedBox(height: preferenceSpacing),
-                    const _PreferenceTile(
-                      title: 'Idioma',
-                      value: 'PT-BR',
-                    ),
-                    SizedBox(height: preferenceSpacing),
-                    const _PreferenceTile(
-                      title: 'Unidade de medida',
-                      value: 'SI',
+                    _CurrentUserPreferenceSection(
+                      spacing: preferenceSpacing,
                     ),
                     SizedBox(height: dangerTopSpacing),
                     Padding(
@@ -160,7 +144,11 @@ class SettingsPage extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
-    if (!context.mounted) return;
+
+    if (!context.mounted) {
+      return;
+    }
+
     Navigator.of(context).pushNamedAndRemoveUntil(
       LoginPage.routeName,
       (route) => false,
@@ -170,7 +158,7 @@ class SettingsPage extends StatelessWidget {
   Future<void> _showDeleteAccountDialog(BuildContext context) {
     return showDialog<void>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Excluir conta'),
           content: const Text(
@@ -178,11 +166,11 @@ class SettingsPage extends StatelessWidget {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Cancelar'),
             ),
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text(
                 'Excluir',
                 style: TextStyle(
@@ -194,6 +182,474 @@ class SettingsPage extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _CurrentUserProfileSummary extends StatelessWidget {
+  const _CurrentUserProfileSummary();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<SettingsUserProfile>(
+      stream: SettingsStore.watchCurrentUserProfile(),
+      builder: (context, snapshot) {
+        final profile = snapshot.data;
+
+        return _ProfileSummary(
+          initial: profile?.initial ?? '?',
+          name: profile?.name ?? 'Usuário',
+        );
+      },
+    );
+  }
+}
+
+class _CurrentUserDependentsSection extends StatelessWidget {
+  const _CurrentUserDependentsSection();
+
+  static const Color _cardColor = Color(0xFFDBE2E8);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<List<SettingsDependent>>(
+      stream: SettingsStore.watchCurrentUserDependents(),
+      builder: (context, snapshot) {
+        final dependents = snapshot.data ?? const <SettingsDependent>[];
+
+        return Container(
+          width: double.infinity,
+          height: 138,
+          decoration: BoxDecoration(
+            color: _cardColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.only(
+            left: 15,
+            right: 15,
+            top: 24,
+            bottom: 20,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (dependents.isEmpty)
+                const Expanded(
+                  child: Center(
+                    child: Text(
+                      'Nenhum dependente adicionado',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black54,
+                        height: 1.2,
+                      ),
+                    ),
+                  ),
+                )
+              else
+                ...dependents.take(2).map(
+                      (dependent) => _DependentAvatarItem(
+                        label: dependent.name,
+                        initial: dependent.initial,
+                        avatarColor: Color(dependent.avatarColorValue),
+                      ),
+                    ),
+              _DependentAvatarItem(
+                label: 'Adicionar',
+                initial: '+',
+                isAddAction: true,
+                onTap: () => _showAddDependentDialog(context),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _showAddDependentDialog(BuildContext context) async {
+    final input = await showDialog<_AddDependentDialogInput>(
+      context: context,
+      builder: (dialogContext) {
+        return const _AddDependentDialog();
+      },
+    );
+
+    if (input == null) {
+      return;
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
+    try {
+      await SettingsStore.addCurrentUserDependent(
+        AddDependentInput(
+          name: input.name,
+          email: input.email,
+          relationship: input.relationship,
+        ),
+      );
+
+      if (!context.mounted) {
+        return;
+      }
+
+      _showSnackBar(
+        context,
+        'Dependente adicionado com sucesso.',
+      );
+    } on Object catch (error) {
+      debugPrint('[SETTINGS] Falha ao adicionar dependente: $error');
+
+      if (!context.mounted) {
+        return;
+      }
+
+      _showSnackBar(
+        context,
+        'Não foi possível adicionar o dependente.',
+      );
+    }
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+}
+
+final class _AddDependentDialogInput {
+  const _AddDependentDialogInput({
+    required this.name,
+    this.email,
+    this.relationship,
+  });
+
+  final String name;
+  final String? email;
+  final String? relationship;
+}
+
+class _AddDependentDialog extends StatelessWidget {
+  const _AddDependentDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    var name = '';
+    var email = '';
+    var relationship = '';
+
+    void submit() {
+      final normalizedName = name.trim();
+      final normalizedEmail = _normalizeOptionalText(email);
+      final normalizedRelationship = _normalizeOptionalText(relationship);
+
+      if (normalizedName.isEmpty) {
+        _showDialogMessage(
+          context,
+          'Informe o nome do dependente.',
+        );
+        return;
+      }
+
+      Navigator.of(context).pop(
+        _AddDependentDialogInput(
+          name: normalizedName,
+          email: normalizedEmail,
+          relationship: normalizedRelationship,
+        ),
+      );
+    }
+
+    return AlertDialog(
+      title: const Text('Adicionar dependente'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Nome',
+              ),
+              textInputAction: TextInputAction.next,
+              onChanged: (value) {
+                name = value;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'E-mail opcional',
+              ),
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              onChanged: (value) {
+                email = value;
+              },
+            ),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Parentesco opcional',
+              ),
+              textInputAction: TextInputAction.done,
+              onChanged: (value) {
+                relationship = value;
+              },
+              onSubmitted: (_) => submit(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        TextButton(
+          onPressed: submit,
+          child: const Text('Adicionar'),
+        ),
+      ],
+    );
+  }
+
+  String? _normalizeOptionalText(String value) {
+    final normalizedValue = value.trim();
+
+    if (normalizedValue.isEmpty) {
+      return null;
+    }
+
+    return normalizedValue;
+  }
+
+  void _showDialogMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+}
+
+class _CurrentUserAccountCard extends StatelessWidget {
+  const _CurrentUserAccountCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<SettingsUserProfile>(
+      stream: SettingsStore.watchCurrentUserProfile(),
+      builder: (context, snapshot) {
+        final profile = snapshot.data;
+
+        return _AccountCard(
+          email: profile?.email ?? 'E-mail não informado',
+          passwordDisplay: '**************',
+        );
+      },
+    );
+  }
+}
+
+class _CurrentUserPreferenceSection extends StatelessWidget {
+  const _CurrentUserPreferenceSection({
+    required this.spacing,
+  });
+
+  final double spacing;
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<SettingsUserProfile>(
+      stream: SettingsStore.watchCurrentUserProfile(),
+      builder: (context, snapshot) {
+        final preferences =
+            snapshot.data?.preferences ??
+            const SettingsUserPreferences.defaults();
+
+        return Column(
+          children: [
+            _PreferenceTile(
+              title: 'Tema claro',
+              switchValue: preferences.isLightTheme,
+              onTap: () {
+                final updatedPreferences = preferences.copyWith(
+                  isLightTheme: !preferences.isLightTheme,
+                );
+
+                _updatePreferences(
+                  context,
+                  updatedPreferences,
+                );
+              },
+            ),
+            SizedBox(height: spacing),
+            _PreferenceTile(
+              title: 'Idioma',
+              value: preferences.languageCode,
+              onTap: () => _showLanguagePicker(
+                context,
+                preferences,
+              ),
+            ),
+            SizedBox(height: spacing),
+            _PreferenceTile(
+              title: 'Unidade de medida',
+              value: preferences.measurementUnit,
+              onTap: () => _showMeasurementUnitPicker(
+                context,
+                preferences,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showLanguagePicker(
+    BuildContext context,
+    SettingsUserPreferences preferences,
+  ) async {
+    final selectedLanguage = await showModalBottomSheet<String>(
+      context: context,
+      builder: (bottomSheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _BottomSheetOption(
+                label: 'PT-BR',
+                selected: preferences.languageCode == 'PT-BR',
+                onTap: () => Navigator.of(bottomSheetContext).pop('PT-BR'),
+              ),
+              _BottomSheetOption(
+                label: 'EN-US',
+                selected: preferences.languageCode == 'EN-US',
+                onTap: () => Navigator.of(bottomSheetContext).pop('EN-US'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selectedLanguage == null) {
+      return;
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
+    await _updatePreferences(
+      context,
+      preferences.copyWith(languageCode: selectedLanguage),
+    );
+  }
+
+  Future<void> _showMeasurementUnitPicker(
+    BuildContext context,
+    SettingsUserPreferences preferences,
+  ) async {
+    final selectedUnit = await showModalBottomSheet<String>(
+      context: context,
+      builder: (bottomSheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _BottomSheetOption(
+                label: 'SI',
+                selected: preferences.measurementUnit == 'SI',
+                onTap: () => Navigator.of(bottomSheetContext).pop('SI'),
+              ),
+              _BottomSheetOption(
+                label: 'Imperial',
+                selected: preferences.measurementUnit == 'Imperial',
+                onTap: () => Navigator.of(bottomSheetContext).pop('Imperial'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (selectedUnit == null) {
+      return;
+    }
+
+    if (!context.mounted) {
+      return;
+    }
+
+    await _updatePreferences(
+      context,
+      preferences.copyWith(measurementUnit: selectedUnit),
+    );
+  }
+
+  Future<void> _updatePreferences(
+    BuildContext context,
+    SettingsUserPreferences preferences,
+  ) async {
+    try {
+      await SettingsStore.updateCurrentUserPreferences(preferences);
+
+      if (!context.mounted) {
+        return;
+      }
+
+      _showSnackBar(
+        context,
+        'Configuração salva com sucesso.',
+      );
+    } on Object catch (error) {
+      debugPrint('[SETTINGS] Falha ao salvar preferências: $error');
+
+      if (!context.mounted) {
+        return;
+      }
+
+      _showSnackBar(
+        context,
+        'Não foi possível salvar a configuração.',
+      );
+    }
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+}
+
+class _BottomSheetOption extends StatelessWidget {
+  const _BottomSheetOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      onTap: onTap,
+      title: Text(label),
+      trailing: selected
+          ? const Icon(
+              Icons.check,
+              color: Color(0xFF759746),
+            )
+          : null,
     );
   }
 }
@@ -295,89 +751,51 @@ class _ProfileSummary extends StatelessWidget {
   }
 }
 
-class _DependentsSection extends StatelessWidget {
-  const _DependentsSection();
-
-  static const Color _cardColor = Color(0xFFDBE2E8);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 138,
-      decoration: BoxDecoration(
-        color: _cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.only(
-        left: 15,
-        right: 15,
-        top: 24,
-        bottom: 20,
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _DependentAvatarItem(
-            label: 'Laura',
-            initial: 'L',
-            avatarColor: Color(0xFF61A7D4),
-          ),
-          _DependentAvatarItem(
-            label: 'Carlos',
-            initial: 'C',
-            avatarColor: Color(0xFFC9623B),
-          ),
-          _DependentAvatarItem(
-            label: 'Adicionar',
-            initial: '+',
-            isAddAction: true,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _DependentAvatarItem extends StatelessWidget {
   const _DependentAvatarItem({
     required this.label,
     required this.initial,
     this.avatarColor,
     this.isAddAction = false,
+    this.onTap,
   });
 
   final String label;
   final String initial;
   final Color? avatarColor;
   final bool isAddAction;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 92,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _AvatarCircle(
-            initial: initial,
-            avatarColor: avatarColor,
-            isAddAction: isAddAction,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontFamily: 'Roboto',
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: Colors.black,
-              height: 1,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: SizedBox(
+        width: 92,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _AvatarCircle(
+              initial: initial,
+              avatarColor: avatarColor,
+              isAddAction: isAddAction,
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Roboto',
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: Colors.black,
+                height: 1,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -491,6 +909,8 @@ class _AccountCard extends StatelessWidget {
                 const SizedBox(height: 10),
                 Text(
                   email,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontFamily: 'Roboto',
                     fontSize: 16,
@@ -582,55 +1002,61 @@ class _PreferenceTile extends StatelessWidget {
     required this.title,
     this.value,
     this.switchValue,
+    this.onTap,
   });
 
   final String title;
   final String? value;
   final bool? switchValue;
+  final VoidCallback? onTap;
 
   static const Color _cardColor = Color(0xFFDBE2E8);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 45,
-      decoration: BoxDecoration(
-        color: _cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.only(
-        left: 20,
-        right: 20,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontFamily: 'Roboto',
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Colors.black,
-                height: 1,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 45,
+        decoration: BoxDecoration(
+          color: _cardColor,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.only(
+          left: 20,
+          right: 20,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black,
+                  height: 1,
+                ),
               ),
             ),
-          ),
-          if (switchValue != null)
-            _SettingsSwitch(value: switchValue!)
-          else
-            Text(
-              value ?? '',
-              style: const TextStyle(
-                fontFamily: 'Roboto',
-                fontSize: 16,
-                fontWeight: FontWeight.w400,
-                color: Colors.black,
-                height: 1,
+            if (switchValue != null)
+              _SettingsSwitch(value: switchValue!)
+            else
+              Text(
+                value ?? '',
+                style: const TextStyle(
+                  fontFamily: 'Roboto',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
+                  height: 1,
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
