@@ -1,72 +1,76 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../core/auth_domain.dart';
 import '../../widgets/auth/auth_gradient_scaffold.dart';
 import '../../widgets/auth/auth_primary_button.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/auth/kippo_logo.dart';
+import 'register_controller.dart';
 
-class RegisterPage extends StatefulWidget {
+class RegisterPage extends StatelessWidget {
   const RegisterPage({super.key});
 
   static const String routeName = '/register';
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<RegisterController>(
+      create: (_) => RegisterController(),
+      child: const _RegisterView(),
+    );
+  }
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterView extends StatelessWidget {
+  const _RegisterView();
+
   static const double _designWidth = 393;
   static const double _designHeight = 852;
 
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _repeatPasswordController = TextEditingController();
+  Future<void> _register(BuildContext context) async {
+    final RegisterController controller = context.read<RegisterController>();
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _repeatPasswordController.dispose();
-    super.dispose();
-  }
+    final RegisterResult result = await controller.register();
 
-  Future<void> _register() async {
-    if (_passwordController.text != _repeatPasswordController.text) {
-      _showMessage('As senhas não são iguais.');
+    if (!context.mounted) {
       return;
     }
 
-    try {
-      final credential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-            email: _emailController.text.trim(),
-            password: _passwordController.text,
-          );
-      await credential.user?.updateDisplayName(_nameController.text.trim());
-      if (!await isAllowedDomainOrSignOut()) {
-        if (!mounted) return;
-        _showMessage(domainErrorMessage);
+    _handleRegisterResult(context, result);
+  }
+
+  void _handleRegisterResult(BuildContext context, RegisterResult result) {
+    switch (result.status) {
+      case RegisterResultStatus.success:
+        Navigator.of(context).pushReplacementNamed('/');
         return;
-      }
-      if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed('/');
-    } on FirebaseAuthException catch (e) {
-      _showMessage(e.message ?? 'Não foi possível criar a conta.');
+
+      case RegisterResultStatus.failure:
+        _showMessage(
+          context,
+          result.message ?? 'Não foi possível criar a conta.',
+        );
+        return;
+
+      case RegisterResultStatus.ignored:
+        return;
     }
   }
 
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _goBack(BuildContext context) {
+    Navigator.of(context).pop();
   }
 
   @override
   Widget build(BuildContext context) {
+    final RegisterController controller = context.watch<RegisterController>();
+
     return AuthGradientScaffold(
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -83,10 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 left: 0,
                 right: 0,
                 child: Center(
-                  child: KippoLogo(
-                    width: w(118),
-                    height: h(50),
-                  ),
+                  child: KippoLogo(width: w(118), height: h(50)),
                 ),
               ),
 
@@ -94,9 +95,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 top: h(183),
                 left: w(20),
                 child: IconButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () => _goBack(context),
                   padding: EdgeInsets.zero,
                   constraints: BoxConstraints(
                     minWidth: w(44),
@@ -133,7 +132,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 right: w(28),
                 child: AuthTextField(
                   hintText: 'Nome',
-                  controller: _nameController,
+                  controller: controller.nameController,
                   height: h(49),
                   borderRadius: w(10),
                   fontSize: w(15.5),
@@ -147,7 +146,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 right: w(28),
                 child: AuthTextField(
                   hintText: 'Email',
-                  controller: _emailController,
+                  controller: controller.emailController,
                   height: h(49),
                   borderRadius: w(10),
                   fontSize: w(15.5),
@@ -162,7 +161,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 right: w(28),
                 child: AuthTextField(
                   hintText: 'Senha',
-                  controller: _passwordController,
+                  controller: controller.passwordController,
                   height: h(49),
                   borderRadius: w(10),
                   fontSize: w(15.5),
@@ -177,7 +176,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 right: w(28),
                 child: AuthTextField(
                   hintText: 'Repetir senha',
-                  controller: _repeatPasswordController,
+                  controller: controller.repeatPasswordController,
                   height: h(49),
                   borderRadius: w(10),
                   fontSize: w(15.5),
@@ -191,11 +190,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 left: w(28),
                 right: w(28),
                 child: AuthPrimaryButton(
-                  text: 'Criar Conta',
+                  text: controller.isLoading
+                      ? 'Criando conta...'
+                      : 'Criar Conta',
                   height: h(49),
                   borderRadius: w(9),
                   fontSize: w(16.5),
-                  onPressed: _register,
+                  onPressed: () => _register(context),
                 ),
               ),
             ],

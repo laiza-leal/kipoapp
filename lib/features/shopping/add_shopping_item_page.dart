@@ -1,54 +1,95 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/theme.dart';
 import '../../widgets/app_header.dart';
 import '../../widgets/bottom_nav_bar.dart';
 import '../../widgets/pantry/components/action_button.dart';
 import '../../widgets/shopping/pantry_suggestion_tile.dart';
+import 'add_shopping_item_controller.dart';
 import 'data/shopping_store.dart';
 
-class AddShoppingItemPage extends StatefulWidget {
+class AddShoppingItemPage extends StatelessWidget {
   const AddShoppingItemPage({super.key});
 
   static const String routeName = '/add-shopping-item';
 
   @override
-  State<AddShoppingItemPage> createState() => _AddShoppingItemPageState();
-}
-
-class _AddShoppingItemPageState extends State<AddShoppingItemPage> {
-  final _controller = TextEditingController();
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<AddShoppingItemController>(
+      create: (_) => AddShoppingItemController(),
+      child: const _AddShoppingItemView(),
     );
   }
+}
 
-  Future<void> _saveTyped() async {
-    final name = _controller.text.trim();
-    if (name.isEmpty) {
-      _showMessage('Informe o nome do item.');
+class _AddShoppingItemView extends StatelessWidget {
+  const _AddShoppingItemView();
+
+  Future<void> _saveTyped(BuildContext context) async {
+    final AddShoppingItemController controller = context
+        .read<AddShoppingItemController>();
+
+    final AddShoppingItemResult result = await controller.saveTypedItem();
+
+    if (!context.mounted) {
       return;
     }
-    await ShoppingStore.add(name);
-    if (mounted) Navigator.pop(context);
+
+    _handleResult(context, result);
   }
 
-  Future<void> _addSuggestion(String name) async {
-    await ShoppingStore.add(name);
-    if (mounted) _showMessage('"$name" adicionado à lista.');
+  Future<void> _addSuggestion(BuildContext context, String name) async {
+    final AddShoppingItemController controller = context
+        .read<AddShoppingItemController>();
+
+    final AddShoppingItemResult result = await controller.addSuggestion(name);
+
+    if (!context.mounted) {
+      return;
+    }
+
+    _handleResult(context, result);
+  }
+
+  void _handleResult(BuildContext context, AddShoppingItemResult result) {
+    switch (result.status) {
+      case AddShoppingItemResultStatus.successClose:
+        Navigator.pop(context);
+        return;
+
+      case AddShoppingItemResultStatus.successMessage:
+        _showMessage(context, result.message ?? 'Item adicionado à lista.');
+        return;
+
+      case AddShoppingItemResultStatus.failure:
+        _showMessage(
+          context,
+          result.message ?? 'Não foi possível concluir a ação.',
+        );
+        return;
+
+      case AddShoppingItemResultStatus.ignored:
+        return;
+    }
+  }
+
+  void _showMessage(BuildContext context, String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _closePage(BuildContext context) {
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    final AddShoppingItemController controller = context
+        .watch<AddShoppingItemController>();
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -58,7 +99,7 @@ class _AddShoppingItemPageState extends State<AddShoppingItemPage> {
             children: [
               AppHeader(
                 title: 'Adicionar item',
-                onBack: () => Navigator.pop(context),
+                onBack: () => _closePage(context),
               ),
               const SizedBox(height: 32),
               Text(
@@ -78,19 +119,23 @@ class _AddShoppingItemPageState extends State<AddShoppingItemPage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: TextField(
-                  controller: _controller,
+                  controller: controller.itemNameController,
                   style: GoogleFonts.dmSans(fontSize: 16, color: Colors.black),
                   decoration: const InputDecoration(
                     icon: Icon(Icons.search, size: 24, color: Colors.black),
                     hintText: 'Nome do item',
                     border: InputBorder.none,
                   ),
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _saveTyped(context),
                 ),
               ),
               const SizedBox(height: 16),
               ActionButton(
-                label: 'Adiciona à lista',
-                onTap: _saveTyped,
+                label: controller.isSaving
+                    ? 'Adicionando...'
+                    : 'Adiciona à lista',
+                onTap: controller.isSaving ? () {} : () => _saveTyped(context),
               ),
               const SizedBox(height: 32),
               Text(
@@ -108,18 +153,35 @@ class _AddShoppingItemPageState extends State<AddShoppingItemPage> {
               ),
               const SizedBox(height: 16),
               FutureBuilder<List<ShoppingSuggestion>>(
-                future: ShoppingStore.pantrySuggestions(),
+                future: controller.pantrySuggestionsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  final suggestions = snapshot.data ?? [];
+
+                  if (snapshot.hasError) {
+                    return Text(
+                      'Não foi possível carregar as sugestões.',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    );
+                  }
+
+                  final List<ShoppingSuggestion> suggestions =
+                      snapshot.data ?? [];
+
                   if (suggestions.isEmpty) {
                     return Text(
                       'Nenhuma sugestão por enquanto.',
-                      style: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
                     );
                   }
+
                   return Column(
                     children: [
                       for (var i = 0; i < suggestions.length; i++) ...[
@@ -127,7 +189,12 @@ class _AddShoppingItemPageState extends State<AddShoppingItemPage> {
                         PantrySuggestionTile(
                           name: suggestions[i].name,
                           reason: suggestions[i].reason,
-                          onAdd: () => _addSuggestion(suggestions[i].name),
+                          onAdd: controller.isSaving
+                              ? () {}
+                              : () => _addSuggestion(
+                                  context,
+                                  suggestions[i].name,
+                                ),
                         ),
                       ],
                     ],
@@ -147,7 +214,7 @@ class _AddShoppingItemPageState extends State<AddShoppingItemPage> {
         hoverElevation: 0,
         focusElevation: 0,
         disabledElevation: 0,
-        onPressed: () => Navigator.pop(context),
+        onPressed: () => _closePage(context),
         child: const Icon(Icons.close, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
