@@ -9,7 +9,6 @@ import '../pantry/pantry_page.dart';
 import '../profile/consumption_profile_page.dart';
 import '../profile/data/profile_store.dart';
 import '../settings/settings_page.dart';
-import '../shopping/data/shopping_store.dart';
 import '../shopping/shopping_list_page.dart';
 import 'data/home_store.dart';
 
@@ -18,83 +17,17 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-    final fullName = (user?.displayName?.trim().isNotEmpty ?? false)
-        ? user!.displayName!.trim()
-        : (user?.email?.split('@').first ?? 'Usuário');
+    final fullName = FirebaseAuth.instance.currentUser!.displayName!;
     final firstName = fullName.split(' ').first;
-    final initial = firstName.isNotEmpty ? firstName[0].toUpperCase() : '?';
 
     return Scaffold(
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           children: [
-            Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [AppColors.primary, AppColors.primaryDark],
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    initial,
-                    style: GoogleFonts.nunito(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
-                      height: 1.0,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Olá, $firstName!',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                          height: 1.0,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Vamos cuidar do que você já tem!',
-                        style: GoogleFonts.dmSans(
-                          fontSize: 14,
-                          color: AppColors.textPrimary,
-                          height: 1.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    Navigator.of(context).pushNamed(SettingsPage.routeName);
-                  },
-                  child: const Icon(
-                    Icons.settings_outlined,
-                    color: AppColors.textPrimary,
-                    size: 22,
-                  ),
-                ),
-              ],
-            ),
+            _Header(firstName: firstName),
             const SizedBox(height: 16),
-            const _HomeExpiringSoonNotificationCard(),
+            const _ExpiringSoonCard(),
             const SizedBox(height: 16),
             Text(
               'Resumo mensal',
@@ -106,148 +39,13 @@ class HomePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 13),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                Navigator.pushNamed(context, ConsumptionProfilePage.routeName);
-              },
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: AppColors.cardGray,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: StreamBuilder(
-                  stream: ProfileStore.watchPantry(),
-                  builder: (context, snapshot) {
-                    final score = snapshot.hasData
-                        ? ProfileStore.score(snapshot.data!.docs)
-                        : 0;
-                    final good = score >= 50;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Seu score de Aproveitamento',
-                                style: GoogleFonts.dmSans(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '$score/100',
-                              style: GoogleFonts.dmSans(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            Icon(
-                              good
-                                  ? Icons.sentiment_satisfied
-                                  : Icons.sentiment_dissatisfied,
-                              color: good ? AppColors.primary : AppColors.danger,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 24),
-                            Expanded(
-                              child: Stack(
-                                children: [
-                                  Container(
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.inactive,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  FractionallySizedBox(
-                                    widthFactor: score / 100,
-                                    child: Container(
-                                      height: 24,
-                                      decoration: BoxDecoration(
-                                        color: good
-                                            ? AppColors.primary
-                                            : AppColors.danger,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
+            const _ScoreCard(),
             const SizedBox(height: 16),
-            const _HomePantrySummaryCard(),
+            const _PantryCountCard(),
             const SizedBox(height: 16),
-            const _HomeExpirationSummaryCards(),
+            const _ExpirationCards(),
             const SizedBox(height: 16),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                Navigator.pushNamed(context, ShoppingListPage.routeName);
-              },
-              child: Container(
-                height: 76,
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                decoration: BoxDecoration(
-                  color: AppColors.cardGray,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.shopping_cart_outlined,
-                      color: AppColors.textPrimary,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 24),
-                    StreamBuilder(
-                      stream: ShoppingStore.watch(),
-                      builder: (context, snapshot) {
-                        final total = snapshot.data?.docs.length ?? 0;
-                        return Text(
-                          '$total',
-                          style: GoogleFonts.inter(
-                            fontSize: 36,
-                            color: AppColors.textPrimary,
-                            height: 1.0,
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Itens na Lista de Compras',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                        height: 1.0,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            const _ShoppingCountCard(),
           ],
         ),
       ),
@@ -268,8 +66,81 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _HomeExpiringSoonNotificationCard extends StatelessWidget {
-  const _HomeExpiringSoonNotificationCard();
+class _Header extends StatelessWidget {
+  const _Header({required this.firstName});
+
+  final String firstName;
+
+  @override
+  Widget build(BuildContext context) {
+    final initial = firstName.isNotEmpty ? firstName[0].toUpperCase() : '?';
+
+    return Row(
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppColors.primary, AppColors.primaryDark],
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            initial,
+            style: GoogleFonts.nunito(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              height: 1.0,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Olá, $firstName!',
+                style: GoogleFonts.dmSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  height: 1.0,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Vamos cuidar do que você já tem!',
+                style: GoogleFonts.dmSans(
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                  height: 1.0,
+                ),
+              ),
+            ],
+          ),
+        ),
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => Navigator.pushNamed(context, SettingsPage.routeName),
+          child: const Icon(
+            Icons.settings_outlined,
+            color: AppColors.textPrimary,
+            size: 22,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExpiringSoonCard extends StatelessWidget {
+  const _ExpiringSoonCard();
 
   @override
   Widget build(BuildContext context) {
@@ -329,16 +200,109 @@ class _HomeExpiringSoonNotificationCard extends StatelessWidget {
   }
 }
 
-class _HomePantrySummaryCard extends StatelessWidget {
-  const _HomePantrySummaryCard();
+class _ScoreCard extends StatelessWidget {
+  const _ScoreCard();
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {
-        Navigator.pushNamed(context, PantryPage.routeName);
-      },
+      onTap: () =>
+          Navigator.pushNamed(context, ConsumptionProfilePage.routeName),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppColors.cardGray,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: StreamBuilder(
+          stream: ProfileStore.watchPantry(),
+          builder: (context, snapshot) {
+            final score = snapshot.hasData
+                ? ProfileStore.score(snapshot.data!.docs)
+                : 0;
+            final good = score >= 50;
+            final barColor = good ? AppColors.primary : AppColors.danger;
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Seu score de Aproveitamento',
+                        style: GoogleFonts.dmSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$score/100',
+                      style: GoogleFonts.dmSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Icon(
+                      good
+                          ? Icons.sentiment_satisfied
+                          : Icons.sentiment_dissatisfied,
+                      color: barColor,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 24),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: AppColors.inactive,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          FractionallySizedBox(
+                            widthFactor: score / 100,
+                            child: Container(
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: barColor,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _PantryCountCard extends StatelessWidget {
+  const _PantryCountCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.pushNamed(context, PantryPage.routeName),
       child: Container(
         height: 76,
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -363,29 +327,7 @@ class _HomePantrySummaryCard extends StatelessWidget {
                 final label = total == 1
                     ? 'Item na Despensa'
                     : 'Itens na Despensa';
-
-                return Row(
-                  children: [
-                    Text(
-                      '$total',
-                      style: GoogleFonts.inter(
-                        fontSize: 36,
-                        color: AppColors.textPrimary,
-                        height: 1.0,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      label,
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                        height: 1.0,
-                      ),
-                    ),
-                  ],
-                );
+                return _CountRow(number: total, label: label);
               },
             ),
           ],
@@ -395,8 +337,8 @@ class _HomePantrySummaryCard extends StatelessWidget {
   }
 }
 
-class _HomeExpirationSummaryCards extends StatelessWidget {
-  const _HomeExpirationSummaryCards();
+class _ExpirationCards extends StatelessWidget {
+  const _ExpirationCards();
 
   @override
   Widget build(BuildContext context) {
@@ -429,6 +371,79 @@ class _HomeExpirationSummaryCards extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _ShoppingCountCard extends StatelessWidget {
+  const _ShoppingCountCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.pushNamed(context, ShoppingListPage.routeName),
+      child: Container(
+        height: 76,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        decoration: BoxDecoration(
+          color: AppColors.cardGray,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.shopping_cart_outlined,
+              color: AppColors.textPrimary,
+              size: 24,
+            ),
+            const SizedBox(width: 24),
+            StreamBuilder(
+              stream: HomeStore.watchShopping(),
+              builder: (context, snapshot) {
+                final docs = snapshot.data?.docs ?? [];
+                return _CountRow(
+                  number: HomeStore.shoppingCount(docs),
+                  label: 'Itens na Lista de Compras',
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CountRow extends StatelessWidget {
+  const _CountRow({required this.number, required this.label});
+
+  final int number;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          '$number',
+          style: GoogleFonts.inter(
+            fontSize: 36,
+            color: AppColors.textPrimary,
+            height: 1.0,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+            height: 1.0,
+          ),
+        ),
+      ],
     );
   }
 }
